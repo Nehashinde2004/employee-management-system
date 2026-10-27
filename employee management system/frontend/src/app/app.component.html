@@ -1,0 +1,116 @@
+<main class="shell">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">EMPLOYEE MANAGEMENT SYSTEM</p>
+      <h1>People &amp; Teams</h1>
+    </div>
+    <button *ngIf="auth.isLoggedIn()" class="button button-outline" type="button" (click)="logout()">Log out</button>
+  </header>
+
+  <section *ngIf="!auth.isLoggedIn()" class="login-card">
+    <h2>Welcome back</h2>
+    <p class="muted">Sign in with your backend account to manage employees.</p>
+    <form (ngSubmit)="login()">
+      <label for="username">Username</label>
+      <input id="username" name="username" [(ngModel)]="username" required autocomplete="username">
+      <label for="password">Password</label>
+      <input id="password" name="password" [(ngModel)]="password" required type="password" autocomplete="current-password">
+      <p class="message error" *ngIf="loginError">{{ loginError }}</p>
+      <button class="button button-primary full-width" [disabled]="loading" type="submit">
+        {{ loading ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+    <p class="hint">API: <code>http://localhost:8080/api/auth/login</code></p>
+  </section>
+
+  <ng-container *ngIf="auth.isLoggedIn()">
+    <section class="stats">
+      <div class="stat-card">
+        <span class="stat-label">Total employees</span>
+        <strong>{{ employees.length }}</strong>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Connection</span>
+        <strong class="connected">Backend linked</strong>
+      </div>
+    </section>
+
+    <p *ngIf="pageError" class="message error">{{ pageError }}</p>
+    <p *ngIf="successMessage" class="message success">{{ successMessage }}</p>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">{{ editingId === null ? 'DIRECTORY' : 'EDIT RECORD' }}</p>
+          <h2>{{ editingId === null ? 'Add employee' : 'Update employee #' + editingId }}</h2>
+        </div>
+        <button class="button button-outline" type="button" (click)="loadEmployees()">Refresh</button>
+      </div>
+
+      <form class="employee-form" (ngSubmit)="saveEmployee()">
+        <div class="field">
+          <label for="name">Employee name *</label>
+          <input id="name" name="name" [(ngModel)]="form.name" required maxlength="100" placeholder="e.g. Asha Patil">
+        </div>
+        <div class="field">
+          <label for="departmentId">Department ID</label>
+          <input id="departmentId" name="departmentId" [(ngModel)]="form.departmentId" type="number" min="1" placeholder="e.g. 1">
+        </div>
+        <div class="field">
+          <label for="addressId">Available address ID</label>
+          <input id="addressId" name="addressId" [(ngModel)]="form.addressId" type="number" min="1" placeholder="e.g. 2">
+        </div>
+        <div class="field">
+          <label for="projectIds">Project IDs</label>
+          <input id="projectIds" name="projectIds" [(ngModel)]="projectIdsText" placeholder="e.g. 1, 2">
+          <small>Enter existing project IDs separated by commas.</small>
+        </div>
+        <div class="form-actions">
+          <button class="button button-primary" type="submit">{{ editingId === null ? 'Create employee' : 'Save changes' }}</button>
+          <button *ngIf="editingId !== null" class="button button-outline" type="button" (click)="cancelEdit()">Cancel</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">PEOPLE</p>
+          <h2>Employee directory</h2>
+        </div>
+        <span class="count">{{ employees.length }} records</span>
+      </div>
+
+      <div class="table-wrap" *ngIf="employees.length; else emptyState">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Name</th><th>Department</th><th>Address</th><th>Projects</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let employee of employees">
+              <td><span class="id-pill">#{{ employee.empid }}</span></td>
+              <td class="person">{{ employee.name }}</td>
+              <td>{{ employee.departmentId ?? '—' }}</td>
+              <td>{{ employee.addressId ?? '—' }}</td>
+              <td>{{ employee.projectIds?.length ? employee.projectIds.join(', ') : '—' }}</td>
+              <td class="actions">
+                <button class="button button-small button-outline" type="button" (click)="editEmployee(employee)">Edit</button>
+                <button class="button button-small button-danger" type="button" (click)="deleteEmployee(employee)">Delete</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #emptyState>
+        <div class="empty">
+          <strong>No employees to display</strong>
+          <p>Add an employee using the form above, or refresh the list.</p>
+        </div>
+      </ng-template>
+    </section>
+  </ng-container>
+
+  <footer>Angular frontend · Spring Boot REST API · MySQL</footer>
+</main>
